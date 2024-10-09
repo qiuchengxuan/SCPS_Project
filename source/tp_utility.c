@@ -1,45 +1,45 @@
 /********************************************************
- * 
+ *
  *                             NOTICE
- *  
+ *
  * "This software was produced for the U.S. Government under
  * Contract No's. DAAB07-97-C-E601, F19628-94-C-0001,
- * NAS5-32607, and JPL contract 752939 and is subject 
- * to the Rights in Noncommercial Computer Software and 
- * Noncommercial Computer Software Documentation Clause 
- * at (DFARS) 252.227-7014 (JUN 95), and the Rights in 
- * Technical Data and Computer Software Clause at (DFARS) 
- * 252.227-7013 (OCT 88) with Alternate II (APR 93),  
+ * NAS5-32607, and JPL contract 752939 and is subject
+ * to the Rights in Noncommercial Computer Software and
+ * Noncommercial Computer Software Documentation Clause
+ * at (DFARS) 252.227-7014 (JUN 95), and the Rights in
+ * Technical Data and Computer Software Clause at (DFARS)
+ * 252.227-7013 (OCT 88) with Alternate II (APR 93),
  * FAR 52.227-14 Rights in Data General, and Article GP-51,
  * Rights in Data - General, respectively.
  *
  *        (c) 1999 The MITRE Corporation
  *
- * MITRE PROVIDES THIS SOFTWARE "AS IS" AND MAKES NO 
- * WARRANTY, EXPRESS OR IMPLIED, AS TO THE ACCURACY, 
- * CAPABILITY, EFFICIENCY, OR FUNCTIONING OF THE PRODUCT. 
- * IN NO EVENT WILL MITRE BE LIABLE FOR ANY GENERAL, 
- * CONSEQUENTIAL, INDIRECT, INCIDENTAL, EXEMPLARY, OR 
- * SPECIAL DAMAGES, EVEN IF MITRE HAS BEEN ADVISED OF THE 
+ * MITRE PROVIDES THIS SOFTWARE "AS IS" AND MAKES NO
+ * WARRANTY, EXPRESS OR IMPLIED, AS TO THE ACCURACY,
+ * CAPABILITY, EFFICIENCY, OR FUNCTIONING OF THE PRODUCT.
+ * IN NO EVENT WILL MITRE BE LIABLE FOR ANY GENERAL,
+ * CONSEQUENTIAL, INDIRECT, INCIDENTAL, EXEMPLARY, OR
+ * SPECIAL DAMAGES, EVEN IF MITRE HAS BEEN ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGES.
  *
- * You accept this software on the condition that you 
- * indemnify and hold harmless MITRE, its Board of 
- * Trustees, officers, agents and employees, from any and 
- * all liability or damages to third parties, including 
- * attorneys' fees, court costs, and other related costs 
- * and expenses, arising our of your use of the Product 
- * irrespective of the cause of said liability, except 
- * for liability arising from claims of US patent 
+ * You accept this software on the condition that you
+ * indemnify and hold harmless MITRE, its Board of
+ * Trustees, officers, agents and employees, from any and
+ * all liability or damages to third parties, including
+ * attorneys' fees, court costs, and other related costs
+ * and expenses, arising our of your use of the Product
+ * irrespective of the cause of said liability, except
+ * for liability arising from claims of US patent
  * infringements.
  *
- * The export from the United States or the subsequent 
- * reexport of this software is subject to compliance 
- * with United States export control and munitions 
- * control restrictions.  You agree that in the event you 
- * seek to export this software you assume full 
- * responsibility for obtaining all necessary export 
- * licenses and approvals and for assuring compliance 
+ * The export from the United States or the subsequent
+ * reexport of this software is subject to compliance
+ * with United States export control and munitions
+ * control restrictions.  You agree that in the event you
+ * seek to export this software you assume full
+ * responsibility for obtaining all necessary export
+ * licenses and approvals and for assuring compliance
  * with applicable reexport restrictions.
  *
  ********************************************************/
@@ -111,8 +111,7 @@ extern unsigned short tp_id;
 extern unsigned short udp_id;
 extern short global_conn_ID;
 extern int ll_read_avail;
-extern fd_set llfd_set;
-extern int ll_max_socket;
+int route_sock;
 extern struct _times
   {
     struct timeval t;
@@ -134,7 +133,7 @@ np_hdr_size (scps_np_rqts np_rqts)
         case NL_PROTOCOL_IPV4:
                 return (20);
                 break;
-    
+
         case NL_PROTOCOL_NP: {
                 scps_np_template np_templ;
                 return (scps_np_get_template (&np_rqts, &np_templ));
@@ -149,7 +148,7 @@ np_hdr_size (scps_np_rqts np_rqts)
                 printf ("WARNING %s %d protocol = %d\n", __FILE__, __LINE__, np_rqts.nl_protocol);
                 return (20);
                 break;
-        
+
   }
 }
 
@@ -221,8 +220,8 @@ scps_Init ()
   spanner_name = (char *) config_span_name;
   if (*spanner_name) {
     spanner_addr = get_remote_internet_addr (spanner_name);
-  } 
-    
+  }
+
   local_name = (char *) config_local_name;
   if (*local_name) {
     local_addr = get_remote_internet_addr (local_name);
@@ -295,13 +294,13 @@ scps_Init ()
 
   route_initialize ();
   init_default_routes ();
-  
+
   mytime.tv_sec = 0;
   mytime.tv_usec = 100000;
 
-  sigprocmask (SIG_BLOCK, &alarmset, 0x0);           
+  sigprocmask (SIG_BLOCK, &alarmset, 0x0);
   create_timer (&tp_TFRate, route_list_head, 1, &mytime, &rate_timer, -1);
-  sigprocmask (SIG_UNBLOCK, &alarmset, 0x0);           
+  sigprocmask (SIG_UNBLOCK, &alarmset, 0x0);
 
   tp_id = 0;
   udp_id = 0;
@@ -311,7 +310,7 @@ scps_Init ()
   write_count = send_count = 0;
   udp_write_count = udp_send_count = 0;
 
-  /* 
+  /*
    * Initialize the timer function pointer array.
    */
 
@@ -332,8 +331,8 @@ scps_Init ()
 
   route_list_head->time = clock_ValueRough ();		/* turn on timer */
   /*
-   * Do it here rather than in 
-   * tp_mss() to make UDP happy 
+   * Do it here rather than in
+   * tp_mss() to make UDP happy
    */
 #define PRELOAD 0
   for (i = 0; i < PRELOAD; i++)
@@ -374,12 +373,12 @@ printf ("%s %d route_sock = %d rouet_sock2 %d\n", __FILE__, __LINE__, route_sock
     }
 
     if (gw_ifs.aif_smtu) {
-        mtu = gw_ifs.aif_smtu ; 
+        mtu = gw_ifs.aif_smtu ;
         rc = scps_setsockopt (route_sock, SCPS_ROUTE, SCPS_SMTU, &mtu, sizeof (mtu));
-    }  
+    }
 
     if (gw_ifs.aif_cc)  {
-        cc = gw_ifs.aif_cc ; 
+        cc = gw_ifs.aif_cc ;
 
 	if (cc == NO_CONGESTION_CONTROL) {
 		int zero = 0;
@@ -400,39 +399,39 @@ printf ("%s %d route_sock = %d rouet_sock2 %d\n", __FILE__, __LINE__, route_sock
 		int one = 1;
         	rc = scps_setsockopt (route_sock, SCPS_ROUTE, SCPSTP_FLOW_CONTROL_CONGEST, &one, sizeof (one));
 	}
-    }  
+    }
 
     if (gw_ifs.aif_mss_ff) {
-        mss_ff = gw_ifs.aif_mss_ff; 
+        mss_ff = gw_ifs.aif_mss_ff;
         rc = scps_setsockopt (route_sock, SCPS_ROUTE, SCPS_MSS_FF, &mss_ff, sizeof (mss_ff));
-    }  
+    }
 
     if (gw_ifs.aif_irto) {
-        irto = gw_ifs.aif_irto; 
+        irto = gw_ifs.aif_irto;
         rc = scps_setsockopt (route_sock, SCPS_ROUTE, SCPS_IRTO, &irto, sizeof (irto));
-    }  
+    }
 
     if (gw_ifs.aif_tcponly) {
         rc = scps_setsockopt (route_sock, SCPS_ROUTE, SCPS_TCPONLY, &one, sizeof (one));
-    }  
+    }
 
     if (gw_ifs.aif_div_addr) {
-        addr = gw_ifs.aif_div_addr; 
+        addr = gw_ifs.aif_div_addr;
         rc = scps_setsockopt (route_sock, SCPS_ROUTE, SCPS_DIV_ADDR, &addr, sizeof (addr));
-    }  
+    }
 
     if (gw_ifs.aif_div_port) {
-        port = gw_ifs.aif_div_port; 
+        port = gw_ifs.aif_div_port;
         rc = scps_setsockopt (route_sock, SCPS_ROUTE, SCPS_DIV_PORT, &port, sizeof (port));
-    }  
+    }
 
     if (gw_ifs.aif_name) {
         rc = scps_setsockopt (route_sock, SCPS_ROUTE, SCPS_IFNAME, &gw_ifs.aif_name, strlen (gw_ifs.aif_name));
-    }  
+    }
 
     if (gw_ifs.aif_scps_security) {
         rc = scps_setsockopt (route_sock, SCPS_ROUTE, SCPS_SP_RQTS, &gw_ifs.aif_scps_security, sizeof (gw_ifs.aif_scps_security));
-    }  
+    }
 
     if (gw_ifs.aif_rate) {
 	rate_control = gw_ifs.aif_rate;
@@ -455,10 +454,10 @@ printf ("%s %d route_sock = %d rouet_sock2 %d\n", __FILE__, __LINE__, route_sock
     }
 #endif /* MIN_RATE_THRESH */
 
-#ifdef FLOW_CONTROL_THRESH 
+#ifdef FLOW_CONTROL_THRESH
     if (gw_ifs.aif_flow_control_cap) {
         rc = scps_setsockopt (route_sock, SCPS_ROUTE, SCPS_FLOW_CONTROL_CAP, &gw_ifs.aif_flow_control_cap, sizeof (gw_ifs.aif_flow_control_cap));
-    }  
+    }
 #endif /*  FLOW_CONTROL_THRESH  */
 
 #ifdef MPF
@@ -466,7 +465,7 @@ printf ("%s %d route_sock = %d rouet_sock2 %d\n", __FILE__, __LINE__, route_sock
          ((tp_Socket *) s1)->rt_route->mpf = 1;
          {
             int i;
-	
+
             ((tp_Socket *) s1)->rt_route->mpf_src_cnt = gw_ifs.aif_mpf_src_cnt;
             for (i = 0; i < gw_ifs.aif_mpf_src_cnt; i++) {
                 ((tp_Socket *) s1)->rt_route->mpf_src [i] = gw_ifs.aif_mpf_src[i];
@@ -483,35 +482,35 @@ printf ("%s %d route_sock = %d rouet_sock2 %d\n", __FILE__, __LINE__, route_sock
 
     if (gw_ifs.aif_encrypt_ipsec_downstream) {
 	int value;
-        value = gw_ifs.aif_encrypt_ipsec_downstream; 
+        value = gw_ifs.aif_encrypt_ipsec_downstream;
         rc = scps_setsockopt (route_sock, SCPS_ROUTE,
  	                      SCPS_ENCRYPT_IPSEC,
 		     	      &value, sizeof (value));
-    }  
+    }
 
     if (gw_ifs.aif_encrypt_pre_overhead) {
 	int value;
-        value = gw_ifs.aif_encrypt_pre_overhead; 
+        value = gw_ifs.aif_encrypt_pre_overhead;
         rc = scps_setsockopt (route_sock, SCPS_ROUTE,
  	                      SCPS_ENCRYPT_PRE_OVERHEAD,
 			      &value, sizeof (value));
-    }  
+    }
 
     if (gw_ifs.aif_encrypt_block_size) {
 	int value;
-        value = gw_ifs.aif_encrypt_block_size; 
+        value = gw_ifs.aif_encrypt_block_size;
         rc = scps_setsockopt (route_sock, SCPS_ROUTE,
  	                      SCPS_ENCRYPT_BLOCK_SIZE,
 			      &value, sizeof (value));
-    }  
+    }
 
     if (gw_ifs.aif_encrypt_post_overhead) {
 	int value;
-        value = gw_ifs.aif_encrypt_post_overhead; 
+        value = gw_ifs.aif_encrypt_post_overhead;
         rc = scps_setsockopt (route_sock, SCPS_ROUTE,
  	                      SCPS_ENCRYPT_POST_OVERHEAD,
 			      &value, sizeof (value));
-    }  
+    }
     if (gw_ifs.bif_mtu) {
 	mtu = gw_ifs.bif_mtu;
 	rc = scps_setsockopt (route_sock2, SCPS_ROUTE, SCPS_MTU, &mtu, sizeof (mtu));
@@ -521,9 +520,9 @@ printf ("%s %d route_sock = %d rouet_sock2 %d\n", __FILE__, __LINE__, route_sock
         mtu = gw_ifs.bif_smtu ;
         rc = scps_setsockopt (route_sock2, SCPS_ROUTE, SCPS_SMTU, &mtu, sizeof (mtu));
     }
-    
+
     if (gw_ifs.bif_cc)  {
-        cc = gw_ifs.bif_cc ; 
+        cc = gw_ifs.bif_cc ;
 
 	if (cc == NO_CONGESTION_CONTROL) {
 		int zero = 0;
@@ -544,39 +543,39 @@ printf ("%s %d route_sock = %d rouet_sock2 %d\n", __FILE__, __LINE__, route_sock
 		int one = 1;
         	rc = scps_setsockopt (route_sock2, SCPS_ROUTE, SCPSTP_FLOW_CONTROL_CONGEST, &one, sizeof (one));
 	}
-    }  
+    }
 
     if (gw_ifs.bif_mss_ff) {
-        mss_ff = gw_ifs.bif_mss_ff ; 
+        mss_ff = gw_ifs.bif_mss_ff ;
         rc = scps_setsockopt (route_sock2, SCPS_ROUTE, SCPS_MSS_FF, &mss_ff, sizeof (mss_ff));
-    }  
+    }
 
     if (gw_ifs.bif_irto) {
-        irto = gw_ifs.bif_irto; 
+        irto = gw_ifs.bif_irto;
         rc = scps_setsockopt (route_sock2, SCPS_ROUTE, SCPS_IRTO, &irto, sizeof (irto));
-    }  
+    }
 
     if (gw_ifs.bif_tcponly) {
         rc = scps_setsockopt (route_sock2, SCPS_ROUTE, SCPS_TCPONLY, &one, sizeof (one));
-    }  
+    }
 
     if (gw_ifs.bif_div_addr) {
-        addr = gw_ifs.bif_div_addr; 
+        addr = gw_ifs.bif_div_addr;
         rc = scps_setsockopt (route_sock2, SCPS_ROUTE, SCPS_DIV_ADDR, &addr, sizeof (addr));
-    }  
+    }
 
     if (gw_ifs.bif_div_port) {
-        port = gw_ifs.bif_div_port; 
+        port = gw_ifs.bif_div_port;
         rc = scps_setsockopt (route_sock2, SCPS_ROUTE, SCPS_DIV_PORT, &port, sizeof (port));
-    }  
+    }
 
     if (gw_ifs.bif_name) {
         rc = scps_setsockopt (route_sock2, SCPS_ROUTE, SCPS_IFNAME, &gw_ifs.bif_name, strlen (gw_ifs.bif_name));
-    }  
+    }
 
     if (gw_ifs.bif_scps_security) {
         rc = scps_setsockopt (route_sock2, SCPS_ROUTE, SCPS_SP_RQTS, &gw_ifs.bif_scps_security, sizeof (gw_ifs.bif_scps_security));
-    }  
+    }
 
     if (gw_ifs.bif_rate) {
 	rate_control = gw_ifs.bif_rate;
@@ -600,10 +599,10 @@ printf ("%s %d route_sock = %d rouet_sock2 %d\n", __FILE__, __LINE__, route_sock
     }
 #endif /* MIN_RATE_THRESH */
 
-#ifdef FLOW_CONTROL_THRESH 
+#ifdef FLOW_CONTROL_THRESH
     if (gw_ifs.bif_flow_control_cap) {
         rc = scps_setsockopt (route_sock2, SCPS_ROUTE, SCPS_FLOW_CONTROL_CAP, &gw_ifs.bif_flow_control_cap, sizeof (gw_ifs.bif_flow_control_cap));
-    }  
+    }
 #endif /*  FLOW_CONTROL_THRESH  */
 
 #ifdef MPF
@@ -611,7 +610,7 @@ printf ("%s %d route_sock = %d rouet_sock2 %d\n", __FILE__, __LINE__, route_sock
          ((tp_Socket *) s2)->rt_route->mpf = 1;
          {
             int i;
-	
+
             ((tp_Socket *) s2)->rt_route->mpf_src_cnt = gw_ifs.bif_mpf_src_cnt;
             for (i = 0; i < gw_ifs.bif_mpf_src_cnt; i++) {
                 ((tp_Socket *) s2)->rt_route->mpf_src [i] = gw_ifs.bif_mpf_src[i];
@@ -628,35 +627,35 @@ printf ("%s %d route_sock = %d rouet_sock2 %d\n", __FILE__, __LINE__, route_sock
 
     if (gw_ifs.bif_encrypt_ipsec_downstream) {
 	int value;
-        value = gw_ifs.bif_encrypt_ipsec_downstream; 
+        value = gw_ifs.bif_encrypt_ipsec_downstream;
         rc = scps_setsockopt (route_sock2, SCPS_ROUTE,
  	                      SCPS_ENCRYPT_IPSEC,
 		     	      &value, sizeof (value));
-    }  
+    }
 
     if (gw_ifs.bif_encrypt_pre_overhead) {
 	int value;
-        value = gw_ifs.bif_encrypt_pre_overhead; 
+        value = gw_ifs.bif_encrypt_pre_overhead;
         rc = scps_setsockopt (route_sock2, SCPS_ROUTE,
  	                      SCPS_ENCRYPT_PRE_OVERHEAD,
 			      &value, sizeof (value));
-    }  
+    }
 
     if (gw_ifs.bif_encrypt_block_size) {
 	int value;
-        value = gw_ifs.bif_encrypt_block_size; 
+        value = gw_ifs.bif_encrypt_block_size;
         rc = scps_setsockopt (route_sock2, SCPS_ROUTE,
  	                      SCPS_ENCRYPT_BLOCK_SIZE,
 			      &value, sizeof (value));
-    }  
+    }
 
     if (gw_ifs.bif_encrypt_post_overhead) {
 	int value;
-        value = gw_ifs.bif_encrypt_post_overhead; 
+        value = gw_ifs.bif_encrypt_post_overhead;
         rc = scps_setsockopt (route_sock2, SCPS_ROUTE,
  	                      SCPS_ENCRYPT_POST_OVERHEAD,
 			      &value, sizeof (value));
-    }  
+    }
 
     rand_number = clock_ValueRough ();
     srandom (rand_number);
@@ -676,8 +675,8 @@ printf ("%s %d route_sock = %d rouet_sock2 %d\n", __FILE__, __LINE__, route_sock
   /* Kick in rate control timers here */
   route_list_head->prev_time = 1;
 
-  /* 
-   * We created a socket, keep running until we've 
+  /*
+   * We created a socket, keep running until we've
    * closed out all the protocol sockets
    */
 
@@ -713,9 +712,9 @@ gateway ()
 
 void
 init_gateway ()
-   
+
 {
-  
+
   init_scheduler ();
   scheduler.run_queue[1] = create_thread (tp);
 #ifndef GATEWAY_SINGLE_THREAD
@@ -865,7 +864,7 @@ printf ("We are temporary out of sockets\n");
 		s->ecbs2_value [iii] = s->ecbs2_req_value [iii] = 0;
  	 }
   }
-  
+
 #ifdef OPT_SCPS
   s->capabilities |= CAP_JUMBO;
 #endif /* OPT_SCPS */
@@ -900,13 +899,13 @@ printf ("We are temporary out of sockets\n");
   s->funct_flags = 0x0;
 
 /*
- * Note:  initializing lastuwein to seqnum results 
- * in a window size of 0 on the initial SYN. This 
- * should be at least 1 to allow the SYN out, but 
- * in our tests, we use SEQ_LEQ rather than SEQ_LT, 
+ * Note:  initializing lastuwein to seqnum results
+ * in a window size of 0 on the initial SYN. This
+ * should be at least 1 to allow the SYN out, but
+ * in our tests, we use SEQ_LEQ rather than SEQ_LT,
  * which is correct.  When/if we support transaction
- * TP, in which data can accompany the SYN, we must 
- * set lastuwein to seqnum + the default window size, 
+ * TP, in which data can accompany the SYN, we must
+ * set lastuwein to seqnum + the default window size,
  * which should be at least 1 mss.
  */
 #ifdef DEBUG_SEQNUM
@@ -1024,11 +1023,11 @@ printf ("We are temporary out of sockets\n");
   if ((!(s->receive_buff)) || (!(s->Out_Seq)) || (!(s->send_buff)))
     goto SockAlloc_Failure;
 
-  /* 
+  /*
    * With the addition of socket options, it is possible to
    * setup your send and receive buffers prior to doing a
    * tp_Connect() or tp_Listen(); We can (and probably should)
-   * think about implementing a socket() call to a globally 
+   * think about implementing a socket() call to a globally
    * managed pool of sockets - the application then just has
    * to deal with a file-descriptor, rather than a socket.
    */
@@ -1047,18 +1046,18 @@ printf ("We are temporary out of sockets\n");
 
 
   /* Create our timers */
-  sigprocmask (SIG_BLOCK, &alarmset, 0x0);           
+  sigprocmask (SIG_BLOCK, &alarmset, 0x0);
   for (i = 0; i < TIMER_COUNT; i++)
     {
       if (!(s->otimers[i] = create_timer ((void *) timer_fn[i], s, 0, NULL,
 					  NULL, i)))
 	{
-  sigprocmask (SIG_UNBLOCK, &alarmset, 0x0);           
+  sigprocmask (SIG_UNBLOCK, &alarmset, 0x0);
 	  SET_ERR (SCPS_ENOBUFS);
 	  return (-1);
 	}
     }
-  sigprocmask (SIG_UNBLOCK, &alarmset, 0x0);           
+  sigprocmask (SIG_UNBLOCK, &alarmset, 0x0);
 
   s->rcvwin = s->app_rbuff->max_size - 1;
 
@@ -1158,7 +1157,7 @@ tp_Unthread (tp_Socket * ds)
 
 	  kill_bchain (ds->send_buff->start);
 	  kill_bchain (ds->receive_buff->start);
-	  kill_bchain (ds->Out_Seq->start); 
+	  kill_bchain (ds->Out_Seq->start);
 
 	  s->state = tp_StateCLOSED;
           sigprocmask (SIG_BLOCK, &alarmset, 0x0);
@@ -1231,7 +1230,7 @@ tp_Unthread (tp_Socket * ds)
 	  }
 
 #ifdef FAIRER_GATEWAY
-	  /* 
+	  /*
 	   * When using the fair gateway, make sure that we don't leave a dangling
 	   * pointer to a freed socket!
 	   */
@@ -1321,13 +1320,13 @@ tp_Flush (tp_Socket * s)
   int len;
 
   /*
-   * Note: this is a dumb thing, check to see whether 
-   * we check the send_buff.start, send_buff.snd_una 
+   * Note: this is a dumb thing, check to see whether
+   * we check the send_buff.start, send_buff.snd_una
    * or send_buff.send as the test...
    */
 
-  /* if there is pending data, send it... but don't 
-   * bother to even allocate an mbuffer if the read_head 
+  /* if there is pending data, send it... but don't
+   * bother to even allocate an mbuffer if the read_head
    * is NULL (no data to send)
    */
 
@@ -1344,10 +1343,10 @@ tp_Flush (tp_Socket * s)
 
 	  s->flags |= tp_FlagPUSH;
 
-	  /* While we can enqueue another mbuff, allocate 
-	   * another mbuff AND we can attach data to an 
-	   * mbuff, build a header and enqueue it to go 
-	   * out. Continue until we fail. 
+	  /* While we can enqueue another mbuff, allocate
+	   * another mbuff AND we can attach data to an
+	   * mbuff, build a header and enqueue it to go
+	   * out. Continue until we fail.
 	   */
 
 	  while ((s->send_buff->b_size < s->send_buff->max_size) &&
@@ -1375,8 +1374,8 @@ tp_Flush (tp_Socket * s)
       else
 	mbuffer = alloc_mbuff (MT_HEADER);
 
-      /* If we failed because we couldn't grab an mbuff, 
-       * there is no point in even considering whether 
+      /* If we failed because we couldn't grab an mbuff,
+       * there is no point in even considering whether
        * or not a FIN needs to go out.
        */
 
@@ -1386,8 +1385,8 @@ tp_Flush (tp_Socket * s)
 	  return (-1);
 	}
 
-      /* If we're here, we've got an mbuffer so we we've 
-       * managed to enqueue all our data to send. Build 
+      /* If we're here, we've got an mbuffer so we we've
+       * managed to enqueue all our data to send. Build
        * a FIN if necessary.
        */
       if ((s->state == tp_StateWANTTOCLOSE) ||
@@ -1402,13 +1401,13 @@ tp_Flush (tp_Socket * s)
 	    }
 
 	  /*
-	   * Must allocate mbuffer before calling tp_BuildHdr 
-	   * and pass it in.  This is a hack to say that this 
-	   * segment will be queued for transmission, not sent 
-	   * immediately.  As a result, the maximum sequence 
-	   * number BUILT, not SENT should be used.  (If this 
-	   * were an ACK, we would allow tp_BuildHdr to allocate 
-	   * the mbuffer, and use the sequence number most 
+	   * Must allocate mbuffer before calling tp_BuildHdr
+	   * and pass it in.  This is a hack to say that this
+	   * segment will be queued for transmission, not sent
+	   * immediately.  As a result, the maximum sequence
+	   * number BUILT, not SENT should be used.  (If this
+	   * were an ACK, we would allow tp_BuildHdr to allocate
+	   * the mbuffer, and use the sequence number most
 	   * recently SENT in the header.)
 	   */
 
@@ -1471,10 +1470,10 @@ tp_WinAck (tp_Socket * s, tp_Header * th)
 #endif /* GATEWAY */
 
   /*
-   * This is to prevent being bitten by Little Endian 
-   * machines when we want to advertise a window greater 
-   * than 65535, but we don't have window-scaling option 
-   * available 
+   * This is to prevent being bitten by Little Endian
+   * machines when we want to advertise a window greater
+   * than 65535, but we don't have window-scaling option
+   * available
    */
   if ((long_temp > 0xFFFF) && (!(s->rcv_scale)))
     {
@@ -1492,7 +1491,7 @@ Validate_Thread (void)
   tp_Socket *s;
 
   /*
-   * If the only sockets on allsocs are now Routing sockets, 
+   * If the only sockets on allsocs are now Routing sockets,
    * and we want to terminate if tp_is_running = 1;
    */
 

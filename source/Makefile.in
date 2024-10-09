@@ -12,12 +12,13 @@ INCLUDEFLAGS=-I. -I$(INCLUDEDIR)
 #
 # System Configuration Constants:
 #====================================================
-# Sparc - Host processor architecture is Sparc
-# I386   - Host processor achitecture is Intel 80386/80486/Pentium
-# Mips  - Host processor architecture is Mips R3000/R4000
+# Sparc   - Host processor architecture is Sparc
+# I386    - Host processor achitecture is Intel 80386/80486/Pentium
+# Amd64   - Host processor achitecture is X86-64 or AMD64
+# Mips    - Host processor architecture is Mips R3000/R4000
 # Mc68000 - Host processor architecture is Motorola 68000 family
 # SOLARIS - Used in conjunction with Sparc for operating over Solaris 2.x
-#          CPU = -DI386 | -DSparc | -DMips | -DMc68000
+#          CPU = -DI386 | -DAmd64 | -DSparc | -DMips | -DMc68000
 #
 CPU= 
 
@@ -260,7 +261,7 @@ TUN_SRSC=
 TAP_SRSC=
 
 SRCS = buffer.c compress.c errors.c get_local_internet_addr.c ll_support.c \
-	scmp.c scps_config.c scps_globali.c scps_globalr.c \
+	scmp.c scpstp.c scps_config.c scps_globali.c scps_globalr.c \
 	scps_initiator.c scps_responder.c $(THREAD_SOURCE) tp.c tp_checksum.c \
 	tp_handler.c tp_output.c tp_outseq.c tp_process.c \
 	tp_socket.c tp_sockopt.c tp_timers.c tp_utility.c tp_utility2.c \
@@ -292,7 +293,7 @@ all:  libscps.a
 
 version.c : Makefile
 	@rm -f version.c
-	@echo "char scps_version [] = \"`whoami`@`hostname` Created SCPS RI Version `cat ../Version` on `date`\nCompile-time Flags: $(OPTFLGA) $(CFLAGS) $(SYMTAB) $(INCLUDEFLAGS)\";" > version.c
+	@echo "char scps_version [] = \"`whoami`@`hostname` Created SCPS RI Version `cat ../Version` on `date`\\nCompile-time Flags: $(OPTFLGA) $(CFLAGS) $(SYMTAB) $(INCLUDEFLAGS)\";" > version.c
 
 thread.o: $(THREAD_SOURCE) thread.h Makefile
 	$(CC) $(SYMTAB) -c $(OPTFLAG) $(CFLAGS) $(INCLUDEFLAGS) $(THREAD_SOURCE) -o thread.o

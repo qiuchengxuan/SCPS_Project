@@ -102,7 +102,7 @@ short get_next_mhop (uint32_t dst_addr, uint32_t * next_hop);
 short get_path_mhop (uint32_t dst_addr, uint32_t * next_hop);
 
 #define MAX_ADDR        100
-ip_np_entry npAddrConvTable[MAX_ADDR];
+extern ip_np_entry npAddrConvTable[MAX_ADDR];
 
 typedef struct _np_internals
   {

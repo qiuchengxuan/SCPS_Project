@@ -1201,8 +1201,11 @@ sunos)
   ;;
 esac
 case $CPU in
-i386 | i486 | i586 | i686 | x86_64)
+i386 | i486 | i586 | i686)
   CPUDEFINE=-DI386
+  ;;
+x86_64)
+  CPUDEFINE=-DAmd64
   ;;
 mips)
   CPUDEFINE=-DMips

@@ -272,7 +272,7 @@ tp ()
 	    tp = (tp_Header *) ((void *) in_data->data + offset);
 
 #ifndef GATEWAY
-	    if (rqts_in.dst_addr == htonl (local_addr))
+	    if (rqts_in.ipv4_dst_addr == htonl (local_addr))
 #endif /* GATEWAY */
 	      {
 		proto = rqts_in.tpid;

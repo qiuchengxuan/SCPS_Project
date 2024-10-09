@@ -64,9 +64,9 @@
 #define START_OF_FRAME_TYPE 12
 #define SIZE_OF_ETHER_PART 14
 
-struct timeval lltimeout;
-fd_set llfd_set;
-int ll_max_socket;
+extern struct timeval lltimeout;
+extern fd_set llfd_set;
+extern int ll_max_socket;
 
 struct _ll_queue_element
   {

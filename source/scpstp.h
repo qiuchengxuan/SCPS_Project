@@ -169,12 +169,11 @@ typedef struct
     u_short dstPort;
     uint32_t seqnum;
     uint32_t acknum;
-#ifdef I386
+#if defined(I386) || defined(Amd64)
     u_char th_x2:4, th_off:4;
-#endif	/* I386 */
-#ifndef I386
+#else
     u_char th_off:4, th_x2:4;
-#endif	/* I386 */
+#endif
     u_char flags;
     u_short window;
     u_short checksum;
@@ -364,8 +363,8 @@ _tp_timers;
 #include "scps_np.h"
 
 /* The broken, but global routing socket for this implementation */
-int route_sock;
-int route_sock2;
+extern int route_sock;
+extern int route_sock2;
 
 
 /* Route Related Flags */

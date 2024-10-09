@@ -181,11 +181,13 @@ extern int gw_no_delay;
 
 uint32_t timebefore = 0;
 
+struct timeval lltimeout;
+fd_set llfd_set;
+int ll_max_socket;
+
 #ifdef LOGGER
 static char *logfile = "logfile";	/* packet log filename */
 static FILE *lf;		/* packet log file handle */
-
-extern struct timeval lltimeout;
 
 extern sigset_t alarmset;
 

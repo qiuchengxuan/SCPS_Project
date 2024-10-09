@@ -123,8 +123,6 @@ extern unsigned short tp_id;
 extern unsigned short udp_id;
 extern short global_conn_ID;
 extern int ll_read_avail;
-extern fd_set llfd_set;
-extern int ll_max_socket;
 extern struct _times
   {
     struct timeval t;

@@ -129,6 +129,8 @@ uint32_t time_last_quench_sent[MAX_ADDR];
 extern struct route ipforward_rt;
 np_mib npmib;
 
+ip_np_entry npAddrConvTable[MAX_ADDR];
+
 int
 scps_np_get_template (rqts, np_templ)
      scps_np_rqts *rqts;

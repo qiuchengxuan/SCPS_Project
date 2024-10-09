@@ -15,3 +15,17 @@
 *.exe
 *.out
 *.app
+/apps/gateway
+/apps/ramp
+/apps/scps_resp
+/apps/scps_ttcp
+/bin/gateway
+/bin/ramp
+/bin/scps_resp
+/bin/scps_ttcp
+
+
+# Generated codes
+/apps/Makefile
+/source/Makefile
+/source/version.c

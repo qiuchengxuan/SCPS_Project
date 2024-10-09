@@ -1,45 +1,45 @@
 /********************************************************
- * 
+ *
  *                             NOTICE
- *  
+ *
  * "This software was produced for the U.S. Government under
  * Contract No's. DAAB07-97-C-E601, F19628-94-C-0001,
- * NAS5-32607, and JPL contract 752939 and is subject 
- * to the Rights in Noncommercial Computer Software and 
- * Noncommercial Computer Software Documentation Clause 
- * at (DFARS) 252.227-7014 (JUN 95), and the Rights in 
- * Technical Data and Computer Software Clause at (DFARS) 
- * 252.227-7013 (OCT 88) with Alternate II (APR 93),  
+ * NAS5-32607, and JPL contract 752939 and is subject
+ * to the Rights in Noncommercial Computer Software and
+ * Noncommercial Computer Software Documentation Clause
+ * at (DFARS) 252.227-7014 (JUN 95), and the Rights in
+ * Technical Data and Computer Software Clause at (DFARS)
+ * 252.227-7013 (OCT 88) with Alternate II (APR 93),
  * FAR 52.227-14 Rights in Data General, and Article GP-51,
  * Rights in Data - General, respectively.
  *
  *        (c) 1999 The MITRE Corporation
  *
- * MITRE PROVIDES THIS SOFTWARE "AS IS" AND MAKES NO 
- * WARRANTY, EXPRESS OR IMPLIED, AS TO THE ACCURACY, 
- * CAPABILITY, EFFICIENCY, OR FUNCTIONING OF THE PRODUCT. 
- * IN NO EVENT WILL MITRE BE LIABLE FOR ANY GENERAL, 
- * CONSEQUENTIAL, INDIRECT, INCIDENTAL, EXEMPLARY, OR 
- * SPECIAL DAMAGES, EVEN IF MITRE HAS BEEN ADVISED OF THE 
+ * MITRE PROVIDES THIS SOFTWARE "AS IS" AND MAKES NO
+ * WARRANTY, EXPRESS OR IMPLIED, AS TO THE ACCURACY,
+ * CAPABILITY, EFFICIENCY, OR FUNCTIONING OF THE PRODUCT.
+ * IN NO EVENT WILL MITRE BE LIABLE FOR ANY GENERAL,
+ * CONSEQUENTIAL, INDIRECT, INCIDENTAL, EXEMPLARY, OR
+ * SPECIAL DAMAGES, EVEN IF MITRE HAS BEEN ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGES.
  *
- * You accept this software on the condition that you 
- * indemnify and hold harmless MITRE, its Board of 
- * Trustees, officers, agents and employees, from any and 
- * all liability or damages to third parties, including 
- * attorneys' fees, court costs, and other related costs 
- * and expenses, arising our of your use of the Product 
- * irrespective of the cause of said liability, except 
- * for liability arising from claims of US patent 
+ * You accept this software on the condition that you
+ * indemnify and hold harmless MITRE, its Board of
+ * Trustees, officers, agents and employees, from any and
+ * all liability or damages to third parties, including
+ * attorneys' fees, court costs, and other related costs
+ * and expenses, arising our of your use of the Product
+ * irrespective of the cause of said liability, except
+ * for liability arising from claims of US patent
  * infringements.
  *
- * The export from the United States or the subsequent 
- * reexport of this software is subject to compliance 
- * with United States export control and munitions 
- * control restrictions.  You agree that in the event you 
- * seek to export this software you assume full 
- * responsibility for obtaining all necessary export 
- * licenses and approvals and for assuring compliance 
+ * The export from the United States or the subsequent
+ * reexport of this software is subject to compliance
+ * with United States export control and munitions
+ * control restrictions.  You agree that in the event you
+ * seek to export this software you assume full
+ * responsibility for obtaining all necessary export
+ * licenses and approvals and for assuring compliance
  * with applicable reexport restrictions.
  *
  ********************************************************/
@@ -126,9 +126,9 @@ init_scheduler()
 	scheduler.interface_data = 0;
 	scheduler.interface = 0x0;
 	sigemptyset(&alarmset);
-#ifdef ENABLE_GDB 
+#ifdef ENABLE_GDB
   sigaddset (&alarmset, SIGVTALRM);
-#else   /* ENABLE_GDB */ 
+#else   /* ENABLE_GDB */
   sigaddset (&alarmset, SIGALRM);
 #endif /* ENABLE_GDB */
 
@@ -317,16 +317,16 @@ sched()
  * NewThreads context switching implementation for the following
  * architectures done  by Josef Burger (bolo@cs.wisc.edu) Sparc 68000 HP
  * Precision Architecture IBM RS/6000
- * 
+ *
  * Notes: I also changed the existing implementation of the MIPS context switch
  * routine to be interrupt (signal) safe.
- * 
+ *
  * 9/13/93  Josef Burger (bolo@cs.wisc.edu) Created a new version of the I860
  * context switching code;  It is now interrupt safe, and it also tries to
  * generate a stack frame for the debugger.
- * 
+ *
  * The 386 version was already signal safe.
- * 
+ *
  * (The new context switchers that I wrote are all interrupt safe.  bolo)
  */
 
@@ -371,6 +371,16 @@ threadHandoffCPU(struct threads * t, Th_Status status)
 			     leal - 108(%esp), %esp ");
 #endif /* I386 */
 
+/* No idea where is this magic number comes from, assuming x86 cacheline size
+ * minus pushed regs size, which is 128 - (5 * 8) */
+#ifdef Amd64
+		asm volatile("push %rbp; \
+			      push %rbx; \
+			      push %rdi; \
+			      push %rsi; \
+			      lea - 88(%rsp), %rsp");
+#endif /* Amd64 */
+
 #ifdef Sparc
 	/* most of the context is saved courtesy of the reg. windows */
 
@@ -391,16 +401,16 @@ threadHandoffCPU(struct threads * t, Th_Status status)
 	 * on the sparcs, the current "register window save area", pointed to
 	 * by the SP, can pretty much be over-written ANYTIME by traps,
 	 * interrupts, etc
-	 * 
+	 *
 	 * When we start to restore the new thread's context, if we setup SP
 	 * immediately, the machine could wipe out any saved values before we
 	 * have a chance to restore them. And, if we left it pointed at the
 	 * old area, the activity would wipe out the context we had just
 	 * saved.
-	 * 
+	 *
 	 * So,... we create a new register save area on the old thread's stack
 	 * to use in the interim.
-	 * 
+	 *
 	 * (we use o7 because the compiler doesn't; a better solution would be
 	 * to use a register variable)
 	 */
@@ -450,6 +460,14 @@ asm volatile(" mov %%sp, %0;":"=r"(oldThread->stack));
 			:"=&r"(oldThread->stack) \
 			:"r"(scheduler.current->stack));
 #endif	/* i386 */
+
+#ifdef Amd64
+	asm             volatile("mov %%rsp, %0; \
+			mov %1, %%rsp " \
+			:"=&r"(oldThread->stack) \
+			:"r"(scheduler.current->stack));
+#endif	/* Amd64 */
+
 #ifdef Sparc
 	/* done above */
 #endif /* Sparc */
@@ -515,10 +533,19 @@ asm volatile(" mov %%sp, %0;":"=r"(oldThread->stack));
 					                 popl % ebx; \
 					                 popl % ebp ");
 #endif /* I386 */
+
+#ifdef Amd64
+		asm             volatile("lea 88(%rsp), %rsp; \
+					  pop %rsi; \
+					  pop %rdi; \
+					  pop %rbx; \
+					  pop %rbp ");
+#endif /* Amd64 */
+
 #ifdef Sparc
 		/*
 		 * Ok, %o7 == &register save area, %sp==old threads save area
-		 * 
+		 *
 		 * Now, restore all registers (except the SP) from the new
 		 * thread's save area
 		 */
@@ -532,7 +559,7 @@ asm volatile(" mov %%sp, %0;":"=r"(oldThread->stack));
 		ldd [%o7 + 0x28], %i2; \
 		ldd [%o7 + 0x30], %i4; \
 		ldd [%o7 + 0x38], %i6; \
-		"); 
+		");
 
 		/*
 		 * The registers are all valid, so traps won't wipe out info

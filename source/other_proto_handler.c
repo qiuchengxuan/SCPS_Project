@@ -102,7 +102,6 @@ extern uint32_t tp_now;
 extern struct timeval end_time;
 extern float elapsed_time;
 extern int delayed_requested;
-int delayed_sent;
 extern short tp_id;
 extern int cluster_check;
 
